@@ -1,0 +1,59 @@
+/* Purpose: minimal layout and colour for correct/wrong messages. */
+
+.app {
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+}
+
+.tagline {
+  color: #444;
+}
+
+button {
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.guess-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.guess-form input {
+  padding: 0.3rem 0.5rem;
+}
+
+.puzzle-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.puzzle-image-hidden {
+  display: none;
+}
+
+.image-loading,
+.inline-error,
+.error-box {
+  color: #8a1f11;
+}
+
+.result-correct {
+  color: #157347;
+  font-weight: bold;
+}
+
+.result-wrong {
+  color: #b02a37;
+  font-weight: bold;
+}
+
+.error-box {
+  margin: 1rem 0;
+}
