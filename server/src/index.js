@@ -6,12 +6,14 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const config = require('./config');
 const puzzleRoutes = require('./routes/puzzle.routes');
+const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
 app.use(cors({ origin: config.clientOrigin }));
 app.use(express.json({ limit: '16kb' }));
 app.use('/api', puzzleRoutes);
+app.use(errorHandler);
 
 async function start() {
   await mongoose.connect(config.mongodbUri);
