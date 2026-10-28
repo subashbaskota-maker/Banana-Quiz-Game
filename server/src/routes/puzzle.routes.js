@@ -2,7 +2,7 @@
 // Portions of this file were generated with AI assistance (Cursor) and reviewed by the author.
 
 const express = require('express');
-const { getPuzzle } = require('../controllers/puzzle.controller');
+const { getPuzzle, submitGuess } = require('../controllers/puzzle.controller');
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ function asyncHandler(fn) {
 }
 
 router.get('/puzzle', asyncHandler(getPuzzle));
+router.post('/guess', asyncHandler(submitGuess));
 
 module.exports = router;
