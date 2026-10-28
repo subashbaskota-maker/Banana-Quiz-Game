@@ -2,8 +2,10 @@
 // Portions of this file were generated with AI assistance (Cursor) and reviewed by the author.
 
 import { useState } from 'react';
-import { fetchPuzzle } from './api/puzzleApi.js';
+import { fetchPuzzle, submitGuess } from './api/puzzleApi.js';
 import PuzzleView from './components/PuzzleView.jsx';
+import GuessForm from './components/GuessForm.jsx';
+import ResultMessage from './components/ResultMessage.jsx';
 
 function App() {
   const [puzzle, setPuzzle] = useState(null);
@@ -11,6 +13,7 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function loadPuzzle() {
     setLoading(true);
@@ -28,7 +31,24 @@ function App() {
     }
   }
 
+  async function handleSubmitGuess(numericGuess) {
+    if (!puzzle) {
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const data = await submitGuess(puzzle.puzzleId, numericGuess);
+      setResult(data.correct ? 'correct' : 'wrong');
+    } catch (err) {
+      setError(err.message || 'Could not check your guess.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   const showStart = !puzzle && !loading && !error;
+  const showForm = puzzle && result !== 'correct';
 
   return (
     <main className="app">
@@ -55,9 +75,20 @@ function App() {
       {puzzle && !loading && (
         <>
           <PuzzleView imageUrl={puzzle.imageUrl} />
-          <button type="button" onClick={loadPuzzle}>
-            Next Puzzle
-          </button>
+          {showForm && (
+            <GuessForm
+              guess={guess}
+              onGuessChange={setGuess}
+              onSubmitGuess={handleSubmitGuess}
+              submitting={submitting}
+            />
+          )}
+          <ResultMessage result={result} />
+          {result === 'correct' && (
+            <button type="button" onClick={loadPuzzle}>
+              Next Puzzle
+            </button>
+          )}
         </>
       )}
     </main>
