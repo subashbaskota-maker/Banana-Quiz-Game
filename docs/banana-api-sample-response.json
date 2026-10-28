@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-10-28T09:49:43Z",
+  "requestUrl": "http://marcconrad.com/uob/banana/api.php",
+  "http": {
+    "redirect": "301 Moved Permanently to https://marcconrad.com/uob/banana/api.php",
+    "finalStatus": 200,
+    "contentType": "text/html",
+    "accessControlAllowOrigin": "*"
+  },
+  "body": {
+    "question": "https://www.sanfoh.com/uob/banana/data/t2d6b18466c43301e0f9943042en95.png",
+    "solution": 5
+  },
+  "notes": {
+    "fieldNames": "The JSON uses 'question' (image URL or base64) and 'solution' (number). There is no 'imageUrl' field.",
+    "base64": "With ?out=json&base64=yes, 'question' becomes a PNG base64 string instead of a URL."
+  }
+}
