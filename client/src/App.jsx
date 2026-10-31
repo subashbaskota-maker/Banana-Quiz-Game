@@ -21,6 +21,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
 
   useEffect(() => {
     let active = true;
@@ -116,67 +117,108 @@ function App() {
 
   return (
     <main className="app">
-      <h1>Banana Quiz</h1>
-      <p className="tagline">What number does the banana stand for?</p>
+      <header className="app-header">
+        <a className="brand" href="/" aria-label="Banana Quiz home">
+          <span className="brand-mark" aria-hidden="true">B</span>
+          <span>Banana Quiz<small>Think it. Solve it.</small></span>
+        </a>
+        <button className="leaderboard-button" type="button" disabled title="Leaderboard coming soon">
+          Leaderboard <span>Coming soon</span>
+        </button>
+      </header>
 
-      {checkingSession && <p>Checking sign-in…</p>}
-
-      {!checkingSession && !user && (
-        <AuthForm
-          mode={authMode}
-          onModeChange={(mode) => {
-            setAuthMode(mode);
-            setAuthError(null);
-          }}
-          onSubmit={handleAuthSubmit}
-          busy={authBusy}
-          error={authError}
-        />
-      )}
-
-      {!checkingSession && user && (
-        <div className="account-bar">
-          <p>Signed in as <strong>{user.email}</strong></p>
-          <button type="button" onClick={handleLogout} disabled={authBusy}>
-            {authBusy ? 'Please wait…' : 'Log out'}
-          </button>
+      <section className="game-card">
+        <div className="game-heading">
+          <p className="eyebrow">A LITTLE BRAIN TRAINING</p>
+          <h1>What number does the banana stand for?</h1>
+          <p className="tagline">Look at the puzzle, work it out, and enter your answer.</p>
         </div>
-      )}
 
-      {user && authError && <p className="auth-error" role="alert">{authError}</p>}
+        {checkingSession && <p className="status-message">Checking sign-in…</p>}
 
-      {showStart && <button type="button" onClick={loadPuzzle}>Start Game</button>}
+        {!checkingSession && !user && (
+          <AuthForm
+            mode={authMode}
+            onModeChange={(mode) => {
+              setAuthMode(mode);
+              setAuthError(null);
+            }}
+            onSubmit={handleAuthSubmit}
+            busy={authBusy}
+            error={authError}
+          />
+        )}
 
-      {user && loading && <p>Loading puzzle…</p>}
-
-      {user && error && (
-        <div className="error-box">
-          <p>{error}</p>
-          <button type="button" onClick={loadPuzzle}>
-            Retry
-          </button>
-        </div>
-      )}
-
-      {user && puzzle && !loading && (
-        <>
-          <PuzzleView imageUrl={puzzle.imageUrl} />
-          {showForm && (
-            <GuessForm
-              guess={guess}
-              onGuessChange={setGuess}
-              onSubmitGuess={handleSubmitGuess}
-              submitting={submitting}
-            />
-          )}
-          <ResultMessage result={result} />
-          {result === 'correct' && (
-            <button type="button" onClick={loadPuzzle}>
-              Next Puzzle
+        {!checkingSession && user && (
+          <div className="account-bar">
+            <p>Signed in as <strong>{user.email}</strong></p>
+            <button className="text-button" type="button" onClick={handleLogout} disabled={authBusy}>
+              {authBusy ? 'Please wait…' : 'Log out'}
             </button>
-          )}
-        </>
-      )}
+          </div>
+        )}
+
+        {user && authError && <p className="auth-error" role="alert">{authError}</p>}
+
+        {showStart && (
+          <div className="game-lobby">
+            <div className="difficulty-picker">
+              <div>
+                <h2>Choose your difficulty</h2>
+                <p>Pick a level to get ready. Difficulty rules are coming later.</p>
+              </div>
+              <div className="difficulty-options" role="group" aria-label="Choose a difficulty">
+                {['easy', 'medium', 'hard'].map((difficulty) => (
+                  <button
+                    className={`difficulty-option${selectedDifficulty === difficulty ? ' selected' : ''}`}
+                    type="button"
+                    key={difficulty}
+                    aria-pressed={selectedDifficulty === difficulty}
+                    onClick={() => setSelectedDifficulty(difficulty)}
+                  >
+                    {difficulty}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button className="primary-button start-button" type="button" onClick={loadPuzzle}>
+              Start Game <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        )}
+
+        {user && loading && <p className="status-message">Loading puzzle…</p>}
+
+        {user && error && (
+          <div className="error-box" role="alert">
+            <p>{error}</p>
+            <button className="primary-button" type="button" onClick={loadPuzzle}>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {user && puzzle && !loading && (
+          <div className="puzzle-stage">
+            <PuzzleView imageUrl={puzzle.imageUrl} />
+            {showForm && (
+              <GuessForm
+                guess={guess}
+                onGuessChange={setGuess}
+                onSubmitGuess={handleSubmitGuess}
+                submitting={submitting}
+              />
+            )}
+            <ResultMessage result={result} />
+            {result === 'correct' && (
+              <button className="primary-button" type="button" onClick={loadPuzzle}>
+                Next Puzzle <span aria-hidden="true">→</span>
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+      <footer className="app-footer">One puzzle at a time. You’ve got this.</footer>
     </main>
   );
 }

@@ -30,7 +30,7 @@ function GuessForm({ guess, onGuessChange, onSubmitGuess, submitting }) {
         onChange={(e) => onGuessChange(e.target.value)}
         disabled={submitting}
       />
-      <button type="submit" disabled={submitting}>
+      <button className="primary-button" type="submit" disabled={submitting}>
         {submitting ? 'Checking…' : 'Submit'}
       </button>
       {validationMessage && <p className="inline-error">{validationMessage}</p>}
