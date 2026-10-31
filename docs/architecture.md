@@ -32,12 +32,13 @@ The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /
 ## Data flow: get puzzle
 
 1. The player clicks **Start Game** or **Next Puzzle**.
-2. `App.jsx` calls `fetchPuzzle()` in `puzzleApi.js`, which sends `GET /api/puzzle`.
+2. `App.jsx` calls `fetchPuzzle(difficulty)` in `puzzleApi.js`, which sends `GET /api/puzzle?difficulty=...`.
 3. The Express controller calls `fetchPuzzleFromBananaApi()`.
 4. That service requests `BANANA_API_URL` (HTTPS JSON). The observed fields are `question` (image URL) and `solution` (number).
-5. Express saves a `Puzzle` document `{ imageUrl, solution, solved: false, createdAt }` in MongoDB.
-6. Express responds with `{ puzzleId, imageUrl }` only. `solution` is not included.
-7. React stores that object in `puzzle` state and shows the image.
+5. Express saves a `Puzzle` document including `{ imageUrl, solution, difficulty, startedAt, solved: false }` in MongoDB.
+6. Express responds with the puzzle ID, image URL, difficulty, start time, and time limit. `solution` is not included.
+7. React stores that object in `puzzle` state, shows the image, and counts down from 60 seconds (easy), 50 seconds (medium), or 30 seconds (hard).
+8. When the countdown expires, React requests `GET /api/puzzle/:puzzleId/solution`. Express checks the puzzle owner and its stored start time before returning the solution. Guesses after the server-side deadline are rejected.
 
 ## Data flow: submit guess
 
@@ -52,5 +53,4 @@ The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /
 
 ## Why the solution stays on the server
 
-The Banana API includes the answer in the same payload as the image. If that payload reached the browser, a player could read the solution in the Network tab. Storing `solution` only in MongoDB, and returning `{ puzzleId, imageUrl }` / `{ correct }`, means the client can play honestly. The Puzzle TTL (1 hour) also drops unused answers automatically.
-
+The Banana API includes the answer in the same payload as the image. If that payload reached the browser, a player could read the solution in the Network tab. Storing `solution` in MongoDB and revealing it only after the server-checked timer expires keeps it hidden during play. The Puzzle TTL (1 hour) also drops unused answers automatically.

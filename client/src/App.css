@@ -333,7 +333,11 @@ a:focus-visible {
 }
 
 .difficulty-option {
+  display: grid;
   min-height: 2.7rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.1rem;
   border: 1px solid #e3e1d8;
   border-radius: 0.7rem;
   background: #fff;
@@ -342,6 +346,17 @@ a:focus-visible {
   font-weight: 700;
   text-transform: capitalize;
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.difficulty-option small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.difficulty-option.selected small {
+  color: var(--green);
 }
 
 .difficulty-option:hover {
@@ -387,6 +402,39 @@ a:focus-visible {
   gap: 0.75rem;
 }
 
+.game-toolbar {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.back-button {
+  padding-left: 0;
+}
+
+.countdown {
+  display: inline-flex;
+  min-width: 4.5rem;
+  justify-content: center;
+  margin: 0;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #e8e4d8;
+  border-radius: 999px;
+  background: #fbfaf6;
+  color: #4a4b43;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.countdown-warning {
+  border-color: #efc7c0;
+  background: #fff3f0;
+  color: #a52c25;
+}
+
 .puzzle-view {
   display: grid;
   min-height: 12rem;
@@ -426,7 +474,7 @@ a:focus-visible {
 
 .result {
   margin: 0.3rem 0;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 1.1rem;
   font-weight: 900;
 }
@@ -437,6 +485,32 @@ a:focus-visible {
 
 .result-wrong {
   color: #b02a37;
+}
+
+.timeout-message {
+  width: min(100%, 24rem);
+  padding: 1rem 1.25rem;
+  border: 1px solid #f1d4cf;
+  border-radius: 0.9rem;
+  background: #fff6f4;
+  color: #67251f;
+  text-align: center;
+}
+
+.timeout-message h2 {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.timeout-message p {
+  margin: 0.55rem 0 0;
+  line-height: 1.5;
+}
+
+.timeout-message strong {
+  font-size: 1.2rem;
 }
 
 .app-footer {
@@ -469,6 +543,10 @@ a:focus-visible {
   }
 
   .account-bar {
+    align-items: flex-start;
+  }
+
+  .game-toolbar {
     align-items: flex-start;
   }
 

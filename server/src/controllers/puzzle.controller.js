@@ -5,6 +5,12 @@ const mongoose = require('mongoose');
 const Puzzle = require('../models/Puzzle');
 const { fetchPuzzleFromBananaApi } = require('../services/bananaApi');
 
+const DIFFICULTY_TIME_LIMITS = {
+  easy: 60,
+  medium: 50,
+  hard: 30
+};
+
 function httpError(statusCode, message) {
   const err = new Error(message);
   err.statusCode = statusCode;
@@ -16,13 +22,49 @@ function isValidObjectId(id) {
 }
 
 async function getPuzzle(req, res) {
+  const difficulty = req.query.difficulty || 'easy';
+  const timeLimitSeconds = DIFFICULTY_TIME_LIMITS[difficulty];
+  if (typeof timeLimitSeconds !== 'number') {
+    throw httpError(400, 'difficulty must be easy, medium, or hard.');
+  }
+
   const { imageUrl, solution } = await fetchPuzzleFromBananaApi();
-  const puzzle = await Puzzle.create({ imageUrl, solution, userId: req.user._id });
+  const startedAt = new Date();
+  const puzzle = await Puzzle.create({
+    imageUrl,
+    solution,
+    userId: req.user._id,
+    difficulty,
+    startedAt
+  });
 
   res.json({
     puzzleId: puzzle._id,
-    imageUrl: puzzle.imageUrl
+    imageUrl: puzzle.imageUrl,
+    difficulty: puzzle.difficulty,
+    startedAt: puzzle.startedAt,
+    timeLimitSeconds
   });
+}
+
+async function getPuzzleSolution(req, res) {
+  const { puzzleId } = req.params;
+  if (!isValidObjectId(puzzleId)) {
+    throw httpError(400, 'puzzleId must be a valid MongoDB ObjectId.');
+  }
+
+  const puzzle = await Puzzle.findOne({ _id: puzzleId, userId: req.user._id });
+  if (!puzzle) {
+    throw httpError(404, 'Puzzle not found. It may have expired. Start a new puzzle.');
+  }
+
+  const timeLimitSeconds = DIFFICULTY_TIME_LIMITS[puzzle.difficulty];
+  const deadline = (puzzle.startedAt || puzzle.createdAt).getTime() + timeLimitSeconds * 1000;
+  if (Date.now() < deadline) {
+    throw httpError(409, 'The puzzle timer has not expired yet.');
+  }
+
+  res.json({ solution: puzzle.solution });
 }
 
 async function submitGuess(req, res) {
@@ -45,6 +87,12 @@ async function submitGuess(req, res) {
     throw httpError(409, 'This puzzle has already been solved. Request a new puzzle.');
   }
 
+  const timeLimitSeconds = DIFFICULTY_TIME_LIMITS[puzzle.difficulty];
+  const deadline = (puzzle.startedAt || puzzle.createdAt).getTime() + timeLimitSeconds * 1000;
+  if (Date.now() >= deadline) {
+    throw httpError(409, 'Time is up. The puzzle can no longer be answered.');
+  }
+
   const correct = guess === puzzle.solution;
   if (correct) {
     puzzle.solved = true;
@@ -56,5 +104,6 @@ async function submitGuess(req, res) {
 
 module.exports = {
   getPuzzle,
+  getPuzzleSolution,
   submitGuess
 };

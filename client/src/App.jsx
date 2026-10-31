@@ -3,11 +3,13 @@
 
 import { useEffect, useState } from 'react';
 import { getCurrentUser, login, logout, register } from './api/authApi.js';
-import { fetchPuzzle, submitGuess } from './api/puzzleApi.js';
+import { fetchPuzzle, fetchPuzzleSolution, submitGuess } from './api/puzzleApi.js';
 import AuthForm from './components/AuthForm.jsx';
 import PuzzleView from './components/PuzzleView.jsx';
 import GuessForm from './components/GuessForm.jsx';
 import ResultMessage from './components/ResultMessage.jsx';
+
+const DIFFICULTY_TIME_LIMITS = { easy: 60, medium: 50, hard: 30 };
 
 function App() {
   const [user, setUser] = useState(null);
@@ -22,6 +24,61 @@ function App() {
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+  const [remainingSeconds, setRemainingSeconds] = useState(null);
+  const [timeExpired, setTimeExpired] = useState(false);
+  const [revealedSolution, setRevealedSolution] = useState(null);
+  const [solutionLoading, setSolutionLoading] = useState(false);
+  const [solutionError, setSolutionError] = useState(null);
+  const [solutionRetry, setSolutionRetry] = useState(0);
+
+  useEffect(() => {
+    if (!puzzle || result === 'correct' || timeExpired) {
+      return undefined;
+    }
+
+    const deadline = Date.parse(puzzle.startedAt) + puzzle.timeLimitSeconds * 1000;
+    function updateTimer() {
+      const seconds = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setRemainingSeconds(seconds);
+      if (seconds === 0) {
+        setTimeExpired(true);
+      }
+    }
+
+    updateTimer();
+    const intervalId = setInterval(updateTimer, 250);
+    return () => clearInterval(intervalId);
+  }, [puzzle, result, timeExpired]);
+
+  useEffect(() => {
+    if (!puzzle || !timeExpired || revealedSolution !== null) {
+      return undefined;
+    }
+
+    let active = true;
+    setSolutionLoading(true);
+    setSolutionError(null);
+    fetchPuzzleSolution(puzzle.puzzleId)
+      .then(({ solution }) => {
+        if (active) {
+          setRevealedSolution(solution);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          setSolutionError(err.message || 'Could not reveal the solution.');
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setSolutionLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [puzzle, timeExpired, revealedSolution, solutionRetry]);
 
   useEffect(() => {
     let active = true;
@@ -73,6 +130,9 @@ function App() {
       setGuess('');
       setResult(null);
       setError(null);
+      setRemainingSeconds(null);
+      setTimeExpired(false);
+      setRevealedSolution(null);
     } catch (err) {
       setAuthError(err.message || 'Could not log out.');
     } finally {
@@ -85,8 +145,13 @@ function App() {
     setError(null);
     setResult(null);
     setGuess('');
+    setRemainingSeconds(null);
+    setTimeExpired(false);
+    setRevealedSolution(null);
+    setSolutionError(null);
+    setPuzzle(null);
     try {
-      const data = await fetchPuzzle();
+      const data = await fetchPuzzle(selectedDifficulty);
       setPuzzle(data);
     } catch (err) {
       setPuzzle(null);
@@ -97,7 +162,7 @@ function App() {
   }
 
   async function handleSubmitGuess(numericGuess) {
-    if (!puzzle) {
+    if (!puzzle || timeExpired) {
       return;
     }
     setSubmitting(true);
@@ -105,11 +170,26 @@ function App() {
     try {
       const data = await submitGuess(puzzle.puzzleId, numericGuess);
       setResult(data.correct ? 'correct' : 'wrong');
+      if (data.correct) {
+        setTimeExpired(false);
+        setRevealedSolution(null);
+      }
     } catch (err) {
       setError(err.message || 'Could not check your guess.');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function returnToDifficultySelection() {
+    setPuzzle(null);
+    setGuess('');
+    setResult(null);
+    setError(null);
+    setRemainingSeconds(null);
+    setTimeExpired(false);
+    setRevealedSolution(null);
+    setSolutionError(null);
   }
 
   const showStart = user && !puzzle && !loading && !error;
@@ -165,10 +245,10 @@ function App() {
             <div className="difficulty-picker">
               <div>
                 <h2>Choose your difficulty</h2>
-                <p>Pick a level to get ready. Difficulty rules are coming later.</p>
+                <p>Pick a level. Each puzzle has its own countdown.</p>
               </div>
               <div className="difficulty-options" role="group" aria-label="Choose a difficulty">
-                {['easy', 'medium', 'hard'].map((difficulty) => (
+                {Object.entries(DIFFICULTY_TIME_LIMITS).map(([difficulty, seconds]) => (
                   <button
                     className={`difficulty-option${selectedDifficulty === difficulty ? ' selected' : ''}`}
                     type="button"
@@ -176,7 +256,8 @@ function App() {
                     aria-pressed={selectedDifficulty === difficulty}
                     onClick={() => setSelectedDifficulty(difficulty)}
                   >
-                    {difficulty}
+                    <span>{difficulty}</span>
+                    <small>{seconds} seconds</small>
                   </button>
                 ))}
               </div>
@@ -195,13 +276,28 @@ function App() {
             <button className="primary-button" type="button" onClick={loadPuzzle}>
               Retry
             </button>
+            <button className="text-button" type="button" onClick={returnToDifficultySelection}>
+              Back to difficulty
+            </button>
           </div>
         )}
 
         {user && puzzle && !loading && (
           <div className="puzzle-stage">
+            <div className="game-toolbar">
+              <button className="text-button back-button" type="button" onClick={returnToDifficultySelection}>
+                ← Back to difficulty
+              </button>
+              {result !== 'correct' && !timeExpired && (
+                <p className={`countdown${(remainingSeconds ?? puzzle.timeLimitSeconds) <= 10 ? ' countdown-warning' : ''}`}
+                  role="timer"
+                  aria-label={`${remainingSeconds ?? puzzle.timeLimitSeconds} seconds remaining`}>
+                  <span aria-hidden="true">⏱</span> {remainingSeconds ?? puzzle.timeLimitSeconds}s
+                </p>
+              )}
+            </div>
             <PuzzleView imageUrl={puzzle.imageUrl} />
-            {showForm && (
+            {showForm && !timeExpired && (
               <GuessForm
                 guess={guess}
                 onGuessChange={setGuess}
@@ -210,7 +306,28 @@ function App() {
               />
             )}
             <ResultMessage result={result} />
-            {result === 'correct' && (
+            {timeExpired && (
+              <div className="timeout-message" role="status">
+                <h2>Time’s up!</h2>
+                {solutionLoading && <p>Revealing the answer…</p>}
+                {solutionError && (
+                  <>
+                    <p className="auth-error">{solutionError}</p>
+                    <button
+                      className="text-button"
+                      type="button"
+                      onClick={() => setSolutionRetry((attempt) => attempt + 1)}
+                    >
+                      Try revealing the answer again
+                    </button>
+                  </>
+                )}
+                {revealedSolution !== null && (
+                  <p>The solution was: <strong>{revealedSolution}</strong></p>
+                )}
+              </div>
+            )}
+            {(result === 'correct' || timeExpired) && (
               <button className="primary-button" type="button" onClick={loadPuzzle}>
                 Next Puzzle <span aria-hidden="true">→</span>
               </button>

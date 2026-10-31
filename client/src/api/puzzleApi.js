@@ -13,9 +13,20 @@ async function readErrorMessage(response) {
   return `Request failed with status ${response.status}.`;
 }
 
-// GET /api/puzzle — returns { puzzleId, imageUrl }.
-export async function fetchPuzzle() {
-  const response = await fetch('/api/puzzle', { credentials: 'include' });
+// GET /api/puzzle?difficulty=... — returns puzzle details without the solution.
+export async function fetchPuzzle(difficulty = 'easy') {
+  const query = new URLSearchParams({ difficulty });
+  const response = await fetch(`/api/puzzle?${query}`, { credentials: 'include' });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+  return response.json();
+}
+
+export async function fetchPuzzleSolution(puzzleId) {
+  const response = await fetch(`/api/puzzle/${encodeURIComponent(puzzleId)}/solution`, {
+    credentials: 'include'
+  });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));
   }

@@ -2,7 +2,7 @@
 // Portions of this file were generated with AI assistance (Cursor) and reviewed by the author.
 
 const express = require('express');
-const { getPuzzle, submitGuess } = require('../controllers/puzzle.controller');
+const { getPuzzle, getPuzzleSolution, submitGuess } = require('../controllers/puzzle.controller');
 const { requireAuth } = require('../middleware/requireAuth');
 
 const router = express.Router();
@@ -16,6 +16,7 @@ router.get('/health', (req, res) => {
 });
 
 router.get('/puzzle', requireAuth, asyncHandler(getPuzzle));
+router.get('/puzzle/:puzzleId/solution', requireAuth, asyncHandler(getPuzzleSolution));
 router.post('/guess', requireAuth, asyncHandler(submitGuess));
 
 module.exports = router;
