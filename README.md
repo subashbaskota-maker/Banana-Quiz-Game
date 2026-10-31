@@ -52,6 +52,8 @@ Open http://localhost:5173. Choose a difficulty, click **Start Game**, and solve
 
 Create an account or log in before starting a game. The session remains active for up to seven days or until you log out.
 
+Use the speaker button in the header to open or stop the optional YouTube music player. Playback starts only when the player chooses to turn it on; the video remains visible while playing.
+
 ## Endpoints
 
 | Method | Path | Request body | Success response | Notes |

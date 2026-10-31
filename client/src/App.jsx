@@ -30,6 +30,7 @@ function App() {
   const [solutionLoading, setSolutionLoading] = useState(false);
   const [solutionError, setSolutionError] = useState(null);
   const [solutionRetry, setSolutionRetry] = useState(0);
+  const [musicEnabled, setMusicEnabled] = useState(false);
 
   useEffect(() => {
     if (!puzzle || result === 'correct' || timeExpired) {
@@ -202,10 +203,47 @@ function App() {
           <span className="brand-mark" aria-hidden="true">B</span>
           <span>Banana Quiz<small>Think it. Solve it.</small></span>
         </a>
-        <button className="leaderboard-button" type="button" disabled title="Leaderboard coming soon">
-          Leaderboard <span>Coming soon</span>
-        </button>
+        <div className="header-actions">
+          <button
+            className={`music-toggle${musicEnabled ? ' music-enabled' : ''}`}
+            type="button"
+            aria-label={musicEnabled ? 'Turn music off' : 'Turn music on'}
+            aria-pressed={musicEnabled}
+            data-tooltip={musicEnabled ? 'Turn music off' : 'Turn music on'}
+            onClick={() => setMusicEnabled((enabled) => !enabled)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 9v6h4l5 4V5L8 9H4Z" />
+              {musicEnabled && (
+                <>
+                  <path d="M16 9a5 5 0 0 1 0 6" />
+                  <path d="M18.5 6.5a8.5 8.5 0 0 1 0 11" />
+                </>
+              )}
+              {!musicEnabled && <path className="mute-slash" d="m16 9 5 6m0-6-5 6" />}
+            </svg>
+          </button>
+          <button className="leaderboard-button" type="button" disabled title="Leaderboard coming soon">
+            Leaderboard <span>Coming soon</span>
+          </button>
+        </div>
       </header>
+
+      {musicEnabled && (
+        <aside className="music-player" aria-label="Background music player">
+          <div className="music-player-heading">
+            <strong>Background music</strong>
+            <span>Provided by YouTube</span>
+          </div>
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/WIit0NbgRpQ?autoplay=1&controls=1&playsinline=1"
+            title="YouTube music video"
+            allow="autoplay; encrypted-media; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        </aside>
+      )}
 
       <section className="game-card">
         <div className="game-heading">
