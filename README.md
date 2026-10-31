@@ -52,7 +52,7 @@ Open http://localhost:5173. Choose a difficulty, click **Start Game**, and solve
 
 Create an account or log in before starting a game. The session remains active for up to seven days or until you log out.
 
-Use the speaker button in the header to open or stop the optional YouTube music player. Playback starts only when the player chooses to turn it on; the video remains visible while playing.
+Use the speaker button in the header to play or stop the looping background music. Music starts only after the player turns it on. The track “Game On” by Soft and Furious is CC0/public domain; see [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Soft_and_Furious_-_02_-_Game_On.ogg) and the [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## Endpoints
 

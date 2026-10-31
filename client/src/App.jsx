@@ -1,7 +1,7 @@
 // Purpose: hold game state and coordinate start, guess, result, and next-puzzle flow.
 // Portions of this file were generated with AI assistance (Cursor) and reviewed by the author.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getCurrentUser, login, logout, register } from './api/authApi.js';
 import { fetchPuzzle, fetchPuzzleSolution, submitGuess } from './api/puzzleApi.js';
 import AuthForm from './components/AuthForm.jsx';
@@ -31,6 +31,8 @@ function App() {
   const [solutionError, setSolutionError] = useState(null);
   const [solutionRetry, setSolutionRetry] = useState(0);
   const [musicEnabled, setMusicEnabled] = useState(false);
+  const [musicError, setMusicError] = useState(null);
+  const musicAudioRef = useRef(null);
 
   useEffect(() => {
     if (!puzzle || result === 'correct' || timeExpired) {
@@ -193,6 +195,30 @@ function App() {
     setSolutionError(null);
   }
 
+  async function handleMusicToggle() {
+    const audio = musicAudioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    if (musicEnabled) {
+      audio.pause();
+      audio.currentTime = 0;
+      setMusicEnabled(false);
+      setMusicError(null);
+      return;
+    }
+
+    setMusicError(null);
+    try {
+      await audio.play();
+      setMusicEnabled(true);
+    } catch {
+      setMusicEnabled(false);
+      setMusicError('Background music could not be played. Please try again.');
+    }
+  }
+
   const showStart = user && !puzzle && !loading && !error;
   const showForm = puzzle && result !== 'correct';
 
@@ -210,7 +236,7 @@ function App() {
             aria-label={musicEnabled ? 'Turn music off' : 'Turn music on'}
             aria-pressed={musicEnabled}
             data-tooltip={musicEnabled ? 'Turn music off' : 'Turn music on'}
-            onClick={() => setMusicEnabled((enabled) => !enabled)}
+            onClick={handleMusicToggle}
           >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 9v6h4l5 4V5L8 9H4Z" />
@@ -229,21 +255,17 @@ function App() {
         </div>
       </header>
 
-      {musicEnabled && (
-        <aside className="music-player" aria-label="Background music player">
-          <div className="music-player-heading">
-            <strong>Background music</strong>
-            <span>Provided by YouTube</span>
-          </div>
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/WIit0NbgRpQ?autoplay=1&controls=1&playsinline=1"
-            title="YouTube music video"
-            allow="autoplay; encrypted-media; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          />
-        </aside>
-      )}
+      <audio
+        ref={musicAudioRef}
+        src="/music/game-on.ogg"
+        loop
+        preload="none"
+        onError={() => {
+          setMusicEnabled(false);
+          setMusicError('Background music could not be loaded. Please try again later.');
+        }}
+      />
+      {musicError && <p className="music-error" role="alert">{musicError}</p>}
 
       <section className="game-card">
         <div className="game-heading">
