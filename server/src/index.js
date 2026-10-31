@@ -5,13 +5,15 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const config = require('./config');
+const authRoutes = require('./routes/auth.routes');
 const puzzleRoutes = require('./routes/puzzle.routes');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(cors({ origin: config.clientOrigin }));
+app.use(cors({ origin: config.clientOrigin, credentials: true }));
 app.use(express.json({ limit: '16kb' }));
+app.use('/api/auth', authRoutes);
 app.use('/api', puzzleRoutes);
 app.use(errorHandler);
 

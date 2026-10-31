@@ -8,17 +8,26 @@ Portions of this file were generated with AI assistance (Cursor) and reviewed by
 flowchart LR
   Player[Player / Browser]
   ReactApp[React client<br/>Vite + functional components]
-  ExpressApi[Express server<br/>/api/puzzle /api/guess /api/health]
-  Mongo[(MongoDB<br/>Puzzle documents)]
+  ExpressApi[Express server<br/>auth + puzzle routes]
+  Mongo[(MongoDB<br/>Users, sessions, puzzles)]
   BananaApi[Banana Game API<br/>marcconrad.com]
 
   Player --> ReactApp
   ReactApp -->|"HTTP /api (Vite proxy in dev)"| ExpressApi
-  ExpressApi -->|"save / find Puzzle"| Mongo
+  ExpressApi -->|"read / write users, sessions, puzzles"| Mongo
   ExpressApi -->|"fetch question + solution"| BananaApi
 ```
 
-The React app never talks to the Banana API or to MongoDB. Only `client/src/api/puzzleApi.js` calls the Express backend. Only `server/src/services/bananaApi.js` calls the external Banana API.
+The React app never talks to the Banana API or to MongoDB. The client API modules call Express; only `server/src/services/bananaApi.js` calls the external Banana API.
+
+## Authentication
+
+1. A player registers with an email and password or logs in with existing credentials.
+2. The server stores passwords as scrypt hashes. It generates a random session token, stores only its SHA-256 hash in MongoDB, and sets the token in an HTTP-only, same-site cookie.
+3. The session lasts up to seven days. The browser sends the cookie with API requests; logout deletes the stored session and clears the cookie.
+4. Puzzle and guess routes require a valid session. Each puzzle stores its owner's `userId`, and a player can only submit guesses for their own puzzles.
+
+The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, and `POST /api/auth/logout`.
 
 ## Data flow: get puzzle
 
@@ -45,6 +54,3 @@ The React app never talks to the Banana API or to MongoDB. Only `client/src/api/
 
 The Banana API includes the answer in the same payload as the image. If that payload reached the browser, a player could read the solution in the Network tab. Storing `solution` only in MongoDB, and returning `{ puzzleId, imageUrl }` / `{ correct }`, means the client can play honestly. The Puzzle TTL (1 hour) also drops unused answers automatically.
 
-## Future authentication (not built)
-
-The Puzzle schema has a comment marking where a `userId` reference would go. An auth middleware could later sit in front of the puzzle routes without changing the current request/response shape.

@@ -3,6 +3,7 @@
 
 const express = require('express');
 const { getPuzzle, submitGuess } = require('../controllers/puzzle.controller');
+const { requireAuth } = require('../middleware/requireAuth');
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-router.get('/puzzle', asyncHandler(getPuzzle));
-router.post('/guess', asyncHandler(submitGuess));
+router.get('/puzzle', requireAuth, asyncHandler(getPuzzle));
+router.post('/guess', requireAuth, asyncHandler(submitGuess));
 
 module.exports = router;

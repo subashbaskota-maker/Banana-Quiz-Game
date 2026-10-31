@@ -17,7 +17,7 @@ function isValidObjectId(id) {
 
 async function getPuzzle(req, res) {
   const { imageUrl, solution } = await fetchPuzzleFromBananaApi();
-  const puzzle = await Puzzle.create({ imageUrl, solution });
+  const puzzle = await Puzzle.create({ imageUrl, solution, userId: req.user._id });
 
   res.json({
     puzzleId: puzzle._id,
@@ -36,7 +36,7 @@ async function submitGuess(req, res) {
     throw httpError(400, 'guess must be an integer (not a string, decimal, or empty value).');
   }
 
-  const puzzle = await Puzzle.findById(puzzleId);
+  const puzzle = await Puzzle.findOne({ _id: puzzleId, userId: req.user._id });
   if (!puzzle) {
     throw httpError(404, 'Puzzle not found. It may have expired. Start a new puzzle.');
   }

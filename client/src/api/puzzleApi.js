@@ -15,7 +15,7 @@ async function readErrorMessage(response) {
 
 // GET /api/puzzle — returns { puzzleId, imageUrl }.
 export async function fetchPuzzle() {
-  const response = await fetch('/api/puzzle');
+  const response = await fetch('/api/puzzle', { credentials: 'include' });
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));
   }
@@ -26,6 +26,7 @@ export async function fetchPuzzle() {
 export async function submitGuess(puzzleId, guess) {
   const response = await fetch('/api/guess', {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ puzzleId, guess })
   });
