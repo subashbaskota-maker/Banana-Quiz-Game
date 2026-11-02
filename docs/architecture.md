@@ -25,7 +25,7 @@ The React app never talks to the Banana API or to MongoDB. The client API module
 1. A player registers with an email and password or logs in with existing credentials.
 2. The server stores passwords as scrypt hashes. It generates a random session token, stores only its SHA-256 hash in MongoDB, and sets the token in an HTTP-only, same-site cookie.
 3. The session lasts up to seven days. The browser sends the cookie with API requests; logout deletes the stored session and clears the cookie.
-4. Puzzle and guess routes require a valid session. Each puzzle stores its owner's `userId`, and a player can only submit guesses for their own puzzles.
+4. Puzzle, guess, and leaderboard routes require a valid session. Each puzzle stores its owner's `userId`, and a player can only submit guesses for their own puzzles. Correct answers increment the user's persistent solved-puzzle total; the leaderboard returns the 10 highest totals with pseudonymous player labels.
 
 The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, and `POST /api/auth/logout`.
 
@@ -48,8 +48,12 @@ The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /
 4. Express loads the Puzzle. Missing or TTL-expired documents return 404.
 5. If `solved` is already true, Express returns 409.
 6. The guess is compared to the stored `solution`. A correct guess sets `solved = true`.
-7. Express responds with `{ correct: true }` or `{ correct: false }`. The solution is never returned.
+7. On a correct answer, Express conditionally marks the puzzle solved before incrementing the owner's persistent `solvedCount`; duplicate concurrent correct submissions cannot award multiple points. Express responds with `{ correct: true }` or `{ correct: false }`. The solution is never returned.
 8. React shows **Correct!** or **Wrong, try again**. After a correct answer the form is hidden and **Next Puzzle** is shown.
+
+## Leaderboard
+
+`GET /api/leaderboard` requires a valid session and returns up to 10 users sorted by `solvedCount` descending. Ties are ordered by account creation time and user ID. The response omits email addresses and uses a stable pseudonym derived from the user's ID. Scores are stored on the user, so they persist after the one-hour puzzle documents expire.
 
 ## Why the solution stays on the server
 

@@ -46,3 +46,11 @@ export async function submitGuess(puzzleId, guess) {
   }
   return response.json();
 }
+
+export async function fetchLeaderboard() {
+  const response = await fetch('/api/leaderboard', { credentials: 'include' });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+  return response.json();
+}

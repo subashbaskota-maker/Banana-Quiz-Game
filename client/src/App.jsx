@@ -7,6 +7,7 @@ import { fetchPuzzle, fetchPuzzleSolution, submitGuess } from './api/puzzleApi.j
 import AuthForm from './components/AuthForm.jsx';
 import PuzzleView from './components/PuzzleView.jsx';
 import GuessForm from './components/GuessForm.jsx';
+import Leaderboard from './components/Leaderboard.jsx';
 import ResultMessage from './components/ResultMessage.jsx';
 
 const DIFFICULTY_TIME_LIMITS = { easy: 60, medium: 50, hard: 30 };
@@ -32,6 +33,7 @@ function App() {
   const [solutionRetry, setSolutionRetry] = useState(0);
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicError, setMusicError] = useState(null);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const musicAudioRef = useRef(null);
 
   useEffect(() => {
@@ -136,6 +138,7 @@ function App() {
       setRemainingSeconds(null);
       setTimeExpired(false);
       setRevealedSolution(null);
+      setLeaderboardOpen(false);
     } catch (err) {
       setAuthError(err.message || 'Could not log out.');
     } finally {
@@ -249,8 +252,14 @@ function App() {
               {!musicEnabled && <path className="mute-slash" d="m16 9 5 6m0-6-5 6" />}
             </svg>
           </button>
-          <button className="leaderboard-button" type="button" disabled title="Leaderboard coming soon">
-            Leaderboard <span>Coming soon</span>
+          <button
+            className="leaderboard-button"
+            type="button"
+            disabled={!user || checkingSession}
+            onClick={() => setLeaderboardOpen(true)}
+            title={!user ? 'Sign in to view the leaderboard' : 'View leaderboard'}
+          >
+            Leaderboard
           </button>
         </div>
       </header>
@@ -268,6 +277,10 @@ function App() {
       {musicError && <p className="music-error" role="alert">{musicError}</p>}
 
       <section className="game-card">
+        {leaderboardOpen ? (
+          <Leaderboard onClose={() => setLeaderboardOpen(false)} />
+        ) : (
+          <>
         <div className="game-heading">
           <p className="eyebrow">A LITTLE BRAIN TRAINING</p>
           <h1>What number does the banana stand for?</h1>
@@ -393,6 +406,8 @@ function App() {
               </button>
             )}
           </div>
+        )}
+          </>
         )}
       </section>
       <footer className="app-footer">One puzzle at a time. You’ve got this.</footer>

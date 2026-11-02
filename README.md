@@ -66,6 +66,7 @@ Use the speaker button in the header to play or stop the looping background musi
 | GET | `/api/puzzle?difficulty=easy` | — | `{ "puzzleId", "imageUrl", "difficulty", "startedAt", "timeLimitSeconds" }` | Requires login; difficulty is `easy` (60s), `medium` (50s), or `hard` (30s). Creates a user-owned puzzle. **Never includes `solution`.** |
 | GET | `/api/puzzle/:puzzleId/solution` | — | `{ "solution": number }` | Requires login and puzzle ownership; only reveals the solution after the server-checked timer expires |
 | POST | `/api/guess` | `{ "puzzleId", "guess" }` | `{ "correct": true \| false }` | Requires login; only the puzzle owner can submit. 400 invalid input, 404 missing/expired/not owned, 409 already solved or timer expired |
+| GET | `/api/leaderboard` | — | `{ "entries": [{ "rank", "player", "score" }] }` | Requires login; returns the top 10 players by total correctly solved puzzles. Player names are pseudonymous. |
 
 ## Solution stays hidden until the timer expires
 
@@ -86,6 +87,7 @@ The Banana API returns the answer in the same JSON as the image. Express stores 
 11. **Back to difficulty** — Use Back to difficulty during a puzzle → the lobby returns and the selected difficulty remains selected.
 12. **Banana API unreachable** — Set `BANANA_API_URL` to `https://127.0.0.1:1/banana` in `.env`, restart the server, click Start Game → UI error, Retry button.
 13. **Server down** — Stop the Express process, click Start Game → UI error (not a blank crash), Retry button.
+14. **Leaderboard** — Open Leaderboard while signed in → top 10 totals appear without exposing account emails; solve a puzzle and reopen it to see the score increase.
 
 ## Project layout
 

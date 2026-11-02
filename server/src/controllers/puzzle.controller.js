@@ -3,6 +3,7 @@
 
 const mongoose = require('mongoose');
 const Puzzle = require('../models/Puzzle');
+const User = require('../models/User');
 const { fetchPuzzleFromBananaApi } = require('../services/bananaApi');
 
 const DIFFICULTY_TIME_LIMITS = {
@@ -95,15 +96,38 @@ async function submitGuess(req, res) {
 
   const correct = guess === puzzle.solution;
   if (correct) {
-    puzzle.solved = true;
-    await puzzle.save();
+    const updatedPuzzle = await Puzzle.findOneAndUpdate(
+      { _id: puzzle._id, solved: false },
+      { $set: { solved: true } }
+    );
+    if (!updatedPuzzle) {
+      throw httpError(409, 'This puzzle has already been solved. Request a new puzzle.');
+    }
+    await User.updateOne({ _id: puzzle.userId }, { $inc: { solvedCount: 1 } });
   }
 
   res.json({ correct });
 }
 
+async function getLeaderboard(req, res) {
+  const users = await User.find({ solvedCount: { $gt: 0 } })
+    .sort({ solvedCount: -1, createdAt: 1, _id: 1 })
+    .limit(10)
+    .select('_id solvedCount')
+    .lean();
+
+  res.json({
+    entries: users.map((user, index) => ({
+      rank: index + 1,
+      player: `Player ${String(user._id).slice(-4).toUpperCase()}`,
+      score: user.solvedCount
+    }))
+  });
+}
+
 module.exports = {
   getPuzzle,
   getPuzzleSolution,
-  submitGuess
+  submitGuess,
+  getLeaderboard
 };
