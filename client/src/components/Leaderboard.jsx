@@ -61,7 +61,7 @@ function Leaderboard({ onClose }) {
       {!loading && !error && entries.length > 0 && (
         <ol className="leaderboard-list" aria-label="Top players by puzzles solved">
           {entries.map((entry) => (
-            <li className="leaderboard-entry" key={entry.player}>
+            <li className="leaderboard-entry" key={entry.rank}>
               <span className={`leaderboard-rank${entry.rank === 1 ? ' leaderboard-rank-first' : ''}`}>
                 {String(entry.rank).padStart(2, '0')}
               </span>

@@ -12,12 +12,12 @@ async function readResponse(response) {
   return body;
 }
 
-export async function register(email, password) {
+export async function register(email, password, username) {
   const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password, username })
   });
   return readResponse(response);
 }
@@ -44,6 +44,16 @@ export async function logout() {
   const response = await fetch('/api/auth/logout', {
     method: 'POST',
     credentials: 'include'
+  });
+  return readResponse(response);
+}
+
+export async function updateUsername(username) {
+  const response = await fetch('/api/auth/username', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ username })
   });
   return readResponse(response);
 }

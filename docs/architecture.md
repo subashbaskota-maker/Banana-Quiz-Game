@@ -22,12 +22,14 @@ The React app never talks to the Banana API or to MongoDB. The client API module
 
 ## Authentication
 
-1. A player registers with an email and password or logs in with existing credentials.
+1. A player registers with a unique username, email, and password or logs in with existing credentials.
 2. The server stores passwords as scrypt hashes. It generates a random session token, stores only its SHA-256 hash in MongoDB, and sets the token in an HTTP-only, same-site cookie.
 3. The session lasts up to seven days. The browser sends the cookie with API requests; logout deletes the stored session and clears the cookie.
-4. Puzzle, guess, and leaderboard routes require a valid session. Each puzzle stores its owner's `userId`, and a player can only submit guesses for their own puzzles. Correct answers increment the user's persistent solved-puzzle total; the leaderboard returns the 10 highest totals with pseudonymous player labels.
+4. Puzzle, guess, leaderboard, and username-update routes require a valid session. Each puzzle stores its owner's `userId`, and a player can only submit guesses for their own puzzles. Correct answers increment the user's persistent solved-puzzle total; the leaderboard returns the 10 highest totals with usernames.
 
-The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, and `POST /api/auth/logout`.
+Accounts choose a unique username during registration. `PATCH /api/auth/username` updates it no more than once every 24 hours; the server enforces the cooldown atomically. The profile page also provides logout.
+
+The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `PATCH /api/auth/username`, and `POST /api/auth/logout`.
 
 ## Data flow: get puzzle
 
@@ -53,7 +55,7 @@ The auth endpoints are `POST /api/auth/register`, `POST /api/auth/login`, `GET /
 
 ## Leaderboard
 
-`GET /api/leaderboard` requires a valid session and returns up to 10 users sorted by `solvedCount` descending. Ties are ordered by account creation time and user ID. The response omits email addresses and uses a stable pseudonym derived from the user's ID. Scores are stored on the user, so they persist after the one-hour puzzle documents expire.
+`GET /api/leaderboard` requires a valid session and returns up to 10 users sorted by `solvedCount` descending. Ties are ordered by account creation time and user ID. The response omits email addresses and displays each player's username. Accounts created before usernames were introduced retain a stable pseudonym until a username is set. Scores are stored on the user, so they persist after the one-hour puzzle documents expire.
 
 ## Why the solution stays on the server
 

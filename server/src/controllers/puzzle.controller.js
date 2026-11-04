@@ -113,13 +113,13 @@ async function getLeaderboard(req, res) {
   const users = await User.find({ solvedCount: { $gt: 0 } })
     .sort({ solvedCount: -1, createdAt: 1, _id: 1 })
     .limit(10)
-    .select('_id solvedCount')
+    .select('_id username solvedCount')
     .lean();
 
   res.json({
     entries: users.map((user, index) => ({
       rank: index + 1,
-      player: `Player ${String(user._id).slice(-4).toUpperCase()}`,
+      player: user.username || `Player ${String(user._id).slice(-4).toUpperCase()}`,
       score: user.solvedCount
     }))
   });

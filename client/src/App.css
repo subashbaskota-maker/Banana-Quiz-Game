@@ -179,6 +179,33 @@ a:focus-visible {
   font-weight: 700;
 }
 
+.profile-button {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #e6e1d4;
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 75%);
+  color: #4a4b43;
+}
+
+.profile-button:hover {
+  border-color: #9ab19d;
+  background: #edf4ed;
+  color: var(--green);
+}
+
+.profile-button svg {
+  width: 1.45rem;
+  height: 1.45rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .game-card {
   overflow: hidden;
   padding: clamp(1.25rem, 5vw, 3rem);
@@ -268,6 +295,107 @@ a:focus-visible {
 .leaderboard-score small {
   color: var(--muted);
   font-size: 0.68rem;
+}
+
+.profile-view {
+  width: min(100%, 38rem);
+  min-height: 22rem;
+  margin: 0 auto;
+}
+
+.profile-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-heading .eyebrow {
+  margin-bottom: 0.35rem;
+}
+
+.profile-heading h2 {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.profile-email {
+  margin: 1.2rem 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-email strong {
+  color: #35372f;
+}
+
+.profile-form {
+  display: grid;
+  max-width: 25rem;
+  gap: 0.55rem;
+}
+
+.profile-form label {
+  color: #4b4c43;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.profile-form input {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #deddd5;
+  border-radius: 0.7rem;
+  background: #fff;
+  color: #24261f;
+}
+
+.profile-form input:disabled {
+  background: #f5f4ef;
+}
+
+.profile-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.profile-success {
+  margin: 0;
+  color: #157347;
+  font-size: 0.83rem;
+}
+
+.profile-logout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.profile-logout h3,
+.profile-logout p {
+  margin: 0;
+}
+
+.profile-logout h3 {
+  font-size: 0.9rem;
+}
+
+.profile-logout p {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.75rem;
 }
 
 .game-heading {
@@ -681,6 +809,11 @@ a:focus-visible {
     font-size: 0.75rem;
   }
 
+  .profile-button {
+    width: 2.55rem;
+    height: 2.55rem;
+  }
+
   .header-actions {
     gap: 0.4rem;
   }
@@ -695,6 +828,10 @@ a:focus-visible {
 
   .leaderboard-heading .text-button {
     font-size: 0.75rem;
+  }
+
+  .profile-heading {
+    align-items: flex-start;
   }
 
   .account-bar {

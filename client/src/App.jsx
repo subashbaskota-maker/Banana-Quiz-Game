@@ -8,6 +8,7 @@ import AuthForm from './components/AuthForm.jsx';
 import PuzzleView from './components/PuzzleView.jsx';
 import GuessForm from './components/GuessForm.jsx';
 import Leaderboard from './components/Leaderboard.jsx';
+import Profile from './components/Profile.jsx';
 import ResultMessage from './components/ResultMessage.jsx';
 
 const DIFFICULTY_TIME_LIMITS = { easy: 60, medium: 50, hard: 30 };
@@ -34,6 +35,7 @@ function App() {
   const [musicEnabled, setMusicEnabled] = useState(false);
   const [musicError, setMusicError] = useState(null);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const musicAudioRef = useRef(null);
 
   useEffect(() => {
@@ -114,7 +116,7 @@ function App() {
     setAuthError(null);
     try {
       const response = authMode === 'register'
-        ? await register(credentials.email, credentials.password)
+        ? await register(credentials.email, credentials.password, credentials.username)
         : await login(credentials.email, credentials.password);
       setUser(response.user);
     } catch (err) {
@@ -139,6 +141,7 @@ function App() {
       setTimeExpired(false);
       setRevealedSolution(null);
       setLeaderboardOpen(false);
+      setProfileOpen(false);
     } catch (err) {
       setAuthError(err.message || 'Could not log out.');
     } finally {
@@ -256,11 +259,32 @@ function App() {
             className="leaderboard-button"
             type="button"
             disabled={!user || checkingSession}
-            onClick={() => setLeaderboardOpen(true)}
+            onClick={() => {
+              setProfileOpen(false);
+              setLeaderboardOpen(true);
+            }}
             title={!user ? 'Sign in to view the leaderboard' : 'View leaderboard'}
           >
             Leaderboard
           </button>
+          {user && (
+            <button
+              className="profile-button"
+              type="button"
+              aria-label="Open player profile"
+              title="Player profile"
+              onClick={() => {
+                setLeaderboardOpen(false);
+                setAuthError(null);
+                setProfileOpen(true);
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c.7-3.5 3.2-5.5 7-5.5s6.3 2 7 5.5" />
+              </svg>
+            </button>
+          )}
         </div>
       </header>
 
@@ -279,6 +303,15 @@ function App() {
       <section className="game-card">
         {leaderboardOpen ? (
           <Leaderboard onClose={() => setLeaderboardOpen(false)} />
+        ) : profileOpen && user ? (
+          <Profile
+            user={user}
+            onUserUpdate={setUser}
+            onLogout={handleLogout}
+            logoutBusy={authBusy}
+            logoutError={authError}
+            onClose={() => setProfileOpen(false)}
+          />
         ) : (
           <>
         <div className="game-heading">
@@ -301,17 +334,6 @@ function App() {
             error={authError}
           />
         )}
-
-        {!checkingSession && user && (
-          <div className="account-bar">
-            <p>Signed in as <strong>{user.email}</strong></p>
-            <button className="text-button" type="button" onClick={handleLogout} disabled={authBusy}>
-              {authBusy ? 'Please wait…' : 'Log out'}
-            </button>
-          </div>
-        )}
-
-        {user && authError && <p className="auth-error" role="alert">{authError}</p>}
 
         {showStart && (
           <div className="game-lobby">

@@ -30,7 +30,8 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'Your session has expired. Sign in again.' });
     }
 
-    const user = await User.findById(session.userId).select('_id email');
+    const user = await User.findById(session.userId)
+      .select('_id email username lastUsernameChangeAt');
     if (!user) {
       await Session.deleteOne({ _id: session._id });
       return res.status(401).json({ error: 'Your session is no longer valid. Sign in again.' });

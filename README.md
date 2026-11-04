@@ -11,7 +11,7 @@ Portions of this project were generated with AI assistance (Cursor) and reviewed
 - HTTP `http://marcconrad.com/...` redirects to HTTPS; `BANANA_API_URL` is therefore the HTTPS JSON URL.
 - MongoDB is local by default (`mongodb://127.0.0.1:27017/banana-quiz`). Atlas works if you put a connection string in `.env`.
 - Guess values must be JSON integers. The browser sends a number after client-side validation. String guesses are rejected by the server.
-- Players create an account with an email address and password. Passwords are stored as scrypt hashes, and signed-in puzzles belong to that user.
+- Players create an account with a username, email address, and password. Usernames are unique and can be changed from the profile page once every 24 hours. Passwords are stored as scrypt hashes, and signed-in puzzles belong to that user.
 - Login sessions are stored in MongoDB and sent to the browser in an HTTP-only, same-site cookie.
 
 ## Prerequisites
@@ -50,7 +50,7 @@ This starts the Express API on port 5000 and the React/Vite client on port 5173 
 
 Open http://localhost:5173. Choose a difficulty, click **Start Game**, and solve the puzzle before its timer runs out. Easy gives 60 seconds, medium 50 seconds, and hard 30 seconds. When time runs out, the answer is revealed and you can start the next puzzle or return to the difficulty selection.
 
-Create an account or log in before starting a game. The session remains active for up to seven days or until you log out.
+Create an account with a username or log in before starting a game. Use the profile icon in the top-right to change your username or log out. Usernames can be changed once every 24 hours. The session remains active for up to seven days or until you log out.
 
 Use the speaker button in the header to play or stop the looping background music. Music starts only after the player turns it on. The track “Game On” by Soft and Furious is CC0/public domain; see [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Soft_and_Furious_-_02_-_Game_On.ogg) and the [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/).
 
@@ -59,14 +59,15 @@ Use the speaker button in the header to play or stop the looping background musi
 | Method | Path | Request body | Success response | Notes |
 |--------|------|--------------|------------------|--------|
 | GET | `/api/health` | — | `{ "status": "ok" }` | Liveness check |
-| POST | `/api/auth/register` | `{ "email", "password" }` | `{ "user" }` | Creates an account and starts a session |
+| POST | `/api/auth/register` | `{ "username", "email", "password" }` | `{ "user" }` | Creates an account and starts a session; usernames are 3–20 letters, numbers, or underscores |
 | POST | `/api/auth/login` | `{ "email", "password" }` | `{ "user" }` | Starts a session |
 | GET | `/api/auth/me` | — | `{ "user" }` | Returns the signed-in user |
+| PATCH | `/api/auth/username` | `{ "username" }` | `{ "user" }` | Requires login; username can be changed once every 24 hours; 409 if taken, 429 during cooldown |
 | POST | `/api/auth/logout` | — | `{ "success": true }` | Revokes the session |
 | GET | `/api/puzzle?difficulty=easy` | — | `{ "puzzleId", "imageUrl", "difficulty", "startedAt", "timeLimitSeconds" }` | Requires login; difficulty is `easy` (60s), `medium` (50s), or `hard` (30s). Creates a user-owned puzzle. **Never includes `solution`.** |
 | GET | `/api/puzzle/:puzzleId/solution` | — | `{ "solution": number }` | Requires login and puzzle ownership; only reveals the solution after the server-checked timer expires |
 | POST | `/api/guess` | `{ "puzzleId", "guess" }` | `{ "correct": true \| false }` | Requires login; only the puzzle owner can submit. 400 invalid input, 404 missing/expired/not owned, 409 already solved or timer expired |
-| GET | `/api/leaderboard` | — | `{ "entries": [{ "rank", "player", "score" }] }` | Requires login; returns the top 10 players by total correctly solved puzzles. Player names are pseudonymous. |
+| GET | `/api/leaderboard` | — | `{ "entries": [{ "rank", "player", "score" }] }` | Requires login; returns the top 10 players by total correctly solved puzzles, shown by username |
 
 ## Solution stays hidden until the timer expires
 
@@ -74,7 +75,7 @@ The Banana API returns the answer in the same JSON as the image. Express stores 
 
 ## Manual test checklist
 
-1. **Registration** — Create an account with a valid email and a password of at least 8 characters; the game becomes available.
+1. **Registration** — Create an account with a valid username (3–20 letters, numbers, or underscores), email, and password of at least 8 characters; the game becomes available.
 2. **Login** — Log out, then log in with the same credentials; the account is restored.
 3. **Logout** — Log out and refresh; the login form appears and protected API requests return 401.
 4. **Puzzle ownership** — A different account cannot submit a guess for another user's puzzle; the API returns 404.
@@ -87,7 +88,8 @@ The Banana API returns the answer in the same JSON as the image. Express stores 
 11. **Back to difficulty** — Use Back to difficulty during a puzzle → the lobby returns and the selected difficulty remains selected.
 12. **Banana API unreachable** — Set `BANANA_API_URL` to `https://127.0.0.1:1/banana` in `.env`, restart the server, click Start Game → UI error, Retry button.
 13. **Server down** — Stop the Express process, click Start Game → UI error (not a blank crash), Retry button.
-14. **Leaderboard** — Open Leaderboard while signed in → top 10 totals appear without exposing account emails; solve a puzzle and reopen it to see the score increase.
+14. **Profile and username** — Open the top-right profile icon, change the username, and verify it appears on the leaderboard; another change is blocked for 24 hours.
+15. **Leaderboard** — Open Leaderboard while signed in → top 10 totals appear without exposing account emails; solve a puzzle and reopen it to see the score increase.
 
 ## Project layout
 

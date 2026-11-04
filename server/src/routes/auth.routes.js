@@ -3,6 +3,7 @@ const {
   register,
   login,
   getCurrentUser,
+  updateUsername,
   logout
 } = require('../controllers/auth.controller');
 const { requireAuth } = require('../middleware/requireAuth');
@@ -16,6 +17,7 @@ function asyncHandler(fn) {
 router.post('/register', asyncHandler(register));
 router.post('/login', asyncHandler(login));
 router.get('/me', requireAuth, getCurrentUser);
+router.patch('/username', requireAuth, asyncHandler(updateUsername));
 router.post('/logout', asyncHandler(logout));
 
 module.exports = router;

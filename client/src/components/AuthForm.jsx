@@ -5,6 +5,7 @@ function AuthForm({ mode, onModeChange, onSubmit, busy, error }) {
     const formData = new FormData(form);
     await onSubmit({
       email: formData.get('email'),
+      username: formData.get('username'),
       password: formData.get('password')
     });
     form.reset();
@@ -37,6 +38,23 @@ function AuthForm({ mode, onModeChange, onSubmit, busy, error }) {
 
       <h2 id="auth-title">{isRegistering ? 'Create your account' : 'Welcome back'}</h2>
       <form className="auth-form" onSubmit={handleSubmit}>
+        {isRegistering && (
+          <>
+            <label htmlFor="auth-username">Username</label>
+            <input
+              id="auth-username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              minLength={3}
+              maxLength={20}
+              pattern="[A-Za-z0-9_]+"
+              title="Use 3–20 letters, numbers, or underscores."
+              required
+              disabled={busy}
+            />
+          </>
+        )}
         <label htmlFor="auth-email">Email</label>
         <input
           id="auth-email"
